@@ -13,7 +13,7 @@
     "pack": "build --dir",
     "clean": "rimraf lib dist",
     "dist": "build",
-    "release": "yarn compile && build"    
+    "release": "build"    
   },
   "author": "brianadams",
   "license": "ISC",
