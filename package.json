@@ -5,7 +5,7 @@
   "main": "main.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/OpenROV/cockpit-electron.git"
+    "url": "https://github.com/OpenROV-dev/cockpit-desktop.git"
   },
   "scripts": {
     "postinstall": "install-app-deps",
