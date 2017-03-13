@@ -46,14 +46,14 @@ function createWindow () {
   })
 
   // and load the index.html of the app.
-/*  win.loadURL(url.format({
+  win.loadURL(url.format({
     pathname: path.join(__dirname, 'index.html'),
     protocol: 'file:',
     slashes: true
   }))
-*/
 
-  win.loadURL('http://localhost:8080/');
+
+ // win.loadURL('http://localhost:8080/');
   // Open the DevTools.
   win.webContents.openDevTools()
 
@@ -78,7 +78,12 @@ function notify(title, mesage) {
 }
 
 function startServices(){
-    beacon.listen();
+    
+    beacon.on('deviceAnnouncement',function(beacon){
+      console.log("got beacon", beacon);
+    });
+    //beacon.listen();
+    
 
     autoUpdater.logger = require("electron-log")
     autoUpdater.logger.transports.file.level = "info"    

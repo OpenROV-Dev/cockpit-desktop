@@ -1,63 +1,70 @@
 "use strict";
 const dgram = require('dgram');
-
-class Beacon {
+const EventEmitter = require('events');
+class Beacon extends EventEmitter{
 
     constructor (options){
         if(!options){
             options = {}
         }
+        super();
         this.port = options.port || 8088;
-        this.broadcastAddress = options.broadcastAddress || '230.185.192.108';
+        this.broadcastAddress = options.broadcastAddress || '192.168.1.255';//;'230.185.192.108';
+        this.beaconRate = options.beaconRate || 3000;
        
+    }
+
+    broadcast(messageFn) {
+        var self = this;
+        this.server = dgram.createSocket('udp4');
+        let server = this.server;
+        server.on('listening', () => {
+        var address = server.address();
+            server.setBroadcast(true)
+       //     server.setMulticastTTL(128);
+       //     server.addMembership( self.broadcastAddress);   
+        });
+
+        this.beaconInterval = setInterval(broadcastNew, this.beaconRate);
+
+        function broadcastNew() {
+            var message = new Buffer(JSON.stringify(messageFn()));
+            server.send(message, 0, message.length, self.port,  self.broadcastAddress);
+        }
+
+        server.bind();
+
     }
 
     listen () {
         var self=this;
         this.client = dgram.createSocket('udp4');
-        this.server = dgram.createSocket('udp4');
         let client = this.client;
-        let server = this.server;
         
         client.on('listening', function () {
             var address = client.address();
             console.log('UDP Client listening on ' + address.address + ":" + address.port);
             client.setBroadcast(true)
-            client.setMulticastTTL(128); 
-            client.addMembership( self.broadcastAddress);
+      //      client.setMulticastTTL(128); 
+      //      client.addMembership( self.broadcastAddress);
         });
 
         client.on('message', function (message, remote) {   
-            console.log('A: Epic Command Received. Preparing Relay.');
-            console.log('B: From: ' + remote.address + ':' + remote.port +' - ' + message);
+            self.emit("deviceAnnouncement",{remoteAddress:remote.address,remotePort:remote.port,data:message})
         });
 
-        server.on('listening', () => {
-        var address = server.address();
-        console.log(`server listening ${address.address}:${address.port}`);
-            server.setBroadcast(true)
-            server.setMulticastTTL(128);
-            server.addMembership( self.broadcastAddress);   
-        });
-
-        this.beaconInterval = setInterval(broadcastNew, 3000);
-
-        function broadcastNew() {
-            
-            var message = new Buffer("I'm here!");
-            server.send(message, 0, message.length, self.port,  self.broadcastAddress);
-            console.log("Sent " + message + " to the wire...");
-        }
-
-        server.bind();
         client.bind(this.port);
 
     }
 
     stop () {
         clearInterval(this.beaconInterval);
-        this.server.close();
-        this.client.close();
+        if (this.server){
+            this.server.close();
+        }
+        if (this.client){
+            this.client.close();
+        }
     }
 }
 

@@ -1,4 +1,5 @@
 Useful commands:
+`./node_modules/.bin/electron .`
 `tail -f ~/Library/Logs/OpenROVCockpit/log.log`
 `GH_TOKEN=$GH_TOKEN node_modules/.bin/build -p onTagOrDraft --draft`
 

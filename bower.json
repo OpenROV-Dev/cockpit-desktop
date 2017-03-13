@@ -1,0 +1,20 @@
+{
+  "name": "OpenROVCockpit",
+  "description": "Desktop application for controlling OpenROV devices",
+  "main": "main.js",
+  "authors": [
+    "brianadams"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/OpenROV-Dev/cockpit-desktop",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "polymer/polymer#^1.8.0"
+  }
+}

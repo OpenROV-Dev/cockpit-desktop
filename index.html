@@ -3,11 +3,66 @@
   <head>
     <meta charset="UTF-8">
     <title>Hello World!</title>
+    <link rel="import" href="bower_components/polymer/polymer.html"/> 
+    <link rel="import" href="bower_components/beacons-list/beacons-list.html"/>  
+    <link rel="stylesheet" type="text/css" href="css/discovery.css">   
   </head>
   <body>
-    <h1>Hello World!</h1>
-    We are using node <script>document.write(process.versions.node)</script>,
-    Chrome <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>.
+    <h1>Seaching for ROVs on your network...</h1>
+    <p>If you are connecting to a wifi-topside you will need to manually connect your device to the ROVs hotspot. Once connected, any ROVs that can be seen by your device will populate the list below:</p>
+    <!--We are using node <script>document.write(window.process.versions.node)</script>,
+    Chrome <script>document.write(window.process.versions.chrome)</script>,
+    and Electron <script>document.write(window.process.versions.electron)</script-->
+    <div class="sk-spinner sk-spinner-pulse" style="margin: auto;"></div>
+
+    <template id="t" is="dom-bind"  strip-whitespace>
+        <beacons-list id="beaconlist" beacons="{{beaconslist}}"></beacons-list>
+    </template>
+
+    <script>
+    var app = {
+
+    initialize: function() {
+        //document.addEventListener('WebComponentsReady', this.onDeviceReady.bind(this), false);
+        this.beacon = new window.OROVE.Beacon();
+        this.rovBeacons = {};
+        this.beacon.on('deviceAnnouncement', this.onDeviceAnnouncement.bind(this),false);
+        var view = document.getElementById('t');
+        view.beaconslist = this.rovBeacons; //Tie this internal state to the view
+        this.onDeviceReady();
+    },
+
+    onDeviceReady: function() {
+        this.beacon.listen();
+        var list = document.getElementById('t').$.beaconlist;
+        list.addEventListener('selected', this.onBeaconSelected.bind(this),false);
+   },    
+
+    onBeaconSelected: function(e) {
+        var beacon = e.detail;
+        //window.open(`https://${beacon.remoteIPAddress}/`, '_self', 'location=yes');
+        window.location=`http://${beacon.remoteIPAddress}:8080/?force=true`
+    },   
+
+    onDeviceAnnouncement: function(deviceInfo) {
+        var data = JSON.parse(new TextDecoder('ascii').decode(new Uint8Array(deviceInfo.data)));
+        console.log(`Device info: ${data}`);
+        data.remoteIPAddress = deviceInfo.remoteAddress;
+        data.expires = Date.now()+data.exp;
+        //this.rovBeacons[deviceInfo.detail.remoteAddress.replace('.','_')]=data;
+        var view = document.getElementById('t');
+        //disable dirty data check
+        var nameroot = 'beaconslist.'+deviceInfo.remoteAddress.replace(/\./g,'_');
+        //view.set(nameroot,{});
+        //view.set(nameroot,data);
+        this.rovBeacons[deviceInfo.remoteAddress.replace(/\./g,'_')]=data;
+        view.beaconslist= {};
+        view.beaconslist = this.rovBeacons;
+    }
+    };
+    setTimeout(function(){
+        app.initialize();
+    },500);
+    </script>
   </body>
 </html>
